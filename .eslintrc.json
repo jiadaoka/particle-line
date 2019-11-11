@@ -1,0 +1,40 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "env": {
+    "browser": true,
+    "commonjs": true,
+    "es6": true,
+    "node": true,
+    "jquery": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "rules": {
+    "strict": 1,
+    "indent": [1, 2],
+    "quotes": [1, "single"],
+    "eqeqeq": 1,
+    "no-alert": 1,
+    "semi": [1, "never"],
+    "@typescript-eslint/indent": [1, 2],
+    "@typescript-eslint/explicit-member-accessibility": 0
+  },
+  "overrides": [{
+    "files": ["gulpfile.js", "webpack.config.js"],
+    "rules": {
+      "@typescript-eslint/indent": 0,
+      "@typescript-eslint/no-var-requires": 0,
+      "@typescript-eslint/explicit-function-return-type": 0
+    }
+  }]
+}
