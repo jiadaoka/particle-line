@@ -1,10 +1,45 @@
-interface Particle {
+interface Point {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  r?: number;
+  color?: string;
+}
+
+class Particle implements Point {
   x: number;
   y: number;
   vx: number;
   vy: number;
   r: number;
-  color?: string;
+  color: string;
+
+  constructor(x: number, y: number, vx: number, vy: number, r = 5, color = '#3463B3') {
+    this.x = x
+    this.y = y
+    this.vx = vx
+    this.vy = vy
+    this.r = r
+    this.color = color
+  }
+
+  draw (ctx: CanvasRenderingContext2D): void {
+    ctx.beginPath()
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2, true)
+    ctx.closePath()
+    ctx.fillStyle = this.color
+    ctx.fill()
+  }
+
+  connection (ctx: CanvasRenderingContext2D, endX: number, endY: number, lineWidth: number): void {
+    ctx.beginPath()
+    ctx.moveTo(this.x, this.y)
+    ctx.lineTo(endX, endY)
+    ctx.lineWidth = lineWidth
+    ctx.strokeStyle = this.color
+    ctx.stroke()
+  }
 }
 
 class ParticleLine {
@@ -16,6 +51,7 @@ class ParticleLine {
   ctx: CanvasRenderingContext2D
   particleNum = 100
   particleArr: Particle[] = []
+  particleMouse: Particle | null = null
 
   constructor(background = '#2D3553', color = '#3463B3', node: Node | null = null) {
     const body = document.querySelector('body') as HTMLBodyElement
@@ -35,6 +71,11 @@ class ParticleLine {
     this.ctx = canvas.getContext('2d') as CanvasRenderingContext2D
 
     this.particleNum = this.getParticleNum(this.width, this.height)
+
+    this.mousemove(canvas)
+    this.mouseover(canvas)
+    this.mouseout(canvas)
+
     this.animation()
   }
 
@@ -44,13 +85,7 @@ class ParticleLine {
     if (len >= this.particleNum) return
     for (let i = len; i < this.particleNum; i++) {
       const _r = 5
-      const _p: Particle = {
-        x: this.randomRange(_r, this.width - _r),
-        y: this.randomRange(_r, this.height - _r),
-        r: _r,
-        vx: this.randomRange(-1, 1, true, false),
-        vy: this.randomRange(-1, 1, true, false)
-      }
+      const _p: Particle = new Particle(this.randomRange(_r, this.width - _r), this.randomRange(_r, this.height - _r), this.randomRange(-1, 1, true, false), this.randomRange(-1, 1, true, false))
       this.particleArr.push(_p)
       this.surplus++
     }
@@ -68,10 +103,7 @@ class ParticleLine {
     for (let i1 = 0; i1 < this.particleNum; i1++) {
       const _p1 = this.particleArr[i1]
 
-      ctx.beginPath()
-      ctx.arc(_p1.x, _p1.y, _p1.r, 0, Math.PI * 2)
-      ctx.fillStyle = this.color
-      ctx.fill()
+      _p1.draw(ctx)
 
       if ((_p1.x <= 0 || _p1.x >= this.width || _p1.y <= 0 || _p1.y >= this.height) && i1 < this.surplus) {
         [this.particleArr[i1], this.particleArr[this.surplus - 1]] = [this.particleArr[this.surplus - 1], this.particleArr[i1]]
@@ -84,12 +116,7 @@ class ParticleLine {
         const _p2 = this.particleArr[i2]
         const _l = Math.sqrt(Math.pow(_p1.x - _p2.x, 2) + Math.pow(_p1.y - _p2.y, 2))
         if (_l < 80) {
-          ctx.beginPath()
-          ctx.moveTo(_p1.x, _p1.y)
-          ctx.lineTo(_p2.x, _p2.y)
-          ctx.lineWidth = 4 - _l / 20
-          ctx.strokeStyle = this.color
-          ctx.stroke()
+          _p1.connection(ctx, _p2.x, _p2.y, 4 - _l / 20)
         }
       }
 
@@ -99,6 +126,20 @@ class ParticleLine {
     }
 
     this.particleArr.splice(this.surplus)
+
+    if (this.particleMouse) {
+      this.particleMouse.draw(ctx)
+      for (let i = 0; i < this.surplus; i++) {
+        const _pm = this.particleMouse
+        const _p2 = this.particleArr[i]
+        const _l = Math.sqrt(Math.pow(_pm.x - _p2.x, 2) + Math.pow(_pm.y - _p2.y, 2))
+        if (_l < 80) {
+          _pm.connection(ctx, _p2.x, _p2.y, 4 - _l / 20)
+          _p2.x -= (_p2.x - _pm.x) / Math.abs((_p2.x - _pm.x) * 80 / _l)
+          _p2.y -= (_p2.y - _pm.y) / Math.abs((_p2.y - _pm.y) * 80 / _l)
+        }
+      }
+    }
   }
 
   animation (): void {
@@ -123,6 +164,27 @@ class ParticleLine {
   getParticleNum (width: number, height: number): number {
     const num = Math.floor(width / 50) * Math.floor(height / 100)
     return num
+  }
+
+  mouseover (el: HTMLElement): void {
+    return el.addEventListener('mouseover', e => {
+      this.particleMouse = new Particle(e.clientX, e.clientY, 0, 0)
+    })
+  }
+
+  mousemove (el: HTMLElement): void {
+    return el.addEventListener('mousemove', e => {
+      if (this.particleMouse !== null) {
+        this.particleMouse.x = e.clientX
+        this.particleMouse.y = e.clientY
+      }
+    })
+  }
+
+  mouseout (el: HTMLElement): void {
+    return el.addEventListener('mouseout', () => {
+      this.particleMouse = null
+    })
   }
 
 }
