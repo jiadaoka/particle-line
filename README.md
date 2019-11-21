@@ -7,6 +7,7 @@ canvas+typescript练习，制作点线图
    - ~~webpack~~
    - ~~eslint~~
 2. 制作基础点线图
+   - 把canvas的原点设计为左下角
    - canvas能自适应
    - 添加canvas节点位置可选择
    - ~~在canvas中添加随机点并使其移动~~
