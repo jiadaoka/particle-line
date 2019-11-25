@@ -24,6 +24,37 @@ class Vec2D {
   }
 }
 
+
+class Field {
+  center: Vec2D
+  constructor(center: Vec2D) {
+    this.center = center
+  }
+
+  calcForce (p: Vec2D): Vec2D {
+    let _p: Vec2D = p.minus(this.center)
+    if (_p.abs() >= 0 && _p.abs() < 200) {
+      _p = _p.times(-1 / 8000)
+    } else {
+      _p.x = 0
+      _p.y = 0
+    }
+    return _p
+  }
+
+  calcDrag (v: Vec2D): Vec2D {
+    const vabs = v.abs()
+    let _v: Vec2D = new Vec2D(v.x, v.y)
+    if (vabs > 0.5) {
+      _v = _v.times(-0.001)
+    } else {
+      _v.x = 0
+      _v.y = 0
+    }
+    return _v
+  }
+}
+
 class Particle {
   pos: Vec2D
   v: Vec2D
@@ -43,30 +74,11 @@ class Particle {
   }
 
   calcAcceleration (center: Vec2D): Vec2D {
-    return this.calcForce(center).plus(this.calcDrag()).times(1 / this.r)
-  }
-
-  calcForce (p: Vec2D): Vec2D {
-    const _p: Vec2D = this.pos.minus(p)
-    if (_p.abs() >= 20 && _p.abs() < 80) {
-      _p.times(-0.01)
-    } else {
-      _p.x = 0
-      _p.y = 0
-    }
-    return _p
-  }
-
-  calcDrag (): Vec2D {
-    const vabs = this.v.abs()
-    const v: Vec2D = new Vec2D(this.v.x, this.v.y)
-    if (vabs > 2) {
-      v.times(-0.01)
-    } else {
-      v.x = 0
-      v.y = 0
-    }
-    return v
+    const field = new Field(center)
+    const f = field.calcForce(this.pos)
+    const d = field.calcDrag(this.v)
+    console.log(f)
+    return f.plus(d)
   }
 
   draw (ctx: CanvasRenderingContext2D): void {
@@ -115,8 +127,8 @@ class ParticleLine {
     body.insertBefore(canvas, node)
     this.ctx = canvas.getContext('2d') as CanvasRenderingContext2D
 
-    // this.particleNum = this.getParticleNum(this.width, this.height)
-    this.particleNum = 1
+    this.particleNum = this.getParticleNum(this.width, this.height)
+    // this.particleNum = 1
 
     this.mousemove(canvas)
     this.mouseover(canvas)
@@ -141,10 +153,10 @@ class ParticleLine {
     const ctx = this.ctx
     this.createParticle()
 
-    // ctx.clearRect(0, 0, this.width, this.height)
+    ctx.clearRect(0, 0, this.width, this.height)
 
-    // ctx.fillStyle = this.background
-    // ctx.fillRect(0, 0, this.width, this.height)
+    ctx.fillStyle = this.background
+    ctx.fillRect(0, 0, this.width, this.height)
 
     for (let i = 0; i < this.surplus; i++) {
       const currP = this.particleArr[i]
@@ -168,13 +180,19 @@ class ParticleLine {
     }
 
     if (this.particleMouse !== null) {
-      // this.particleMouse.draw(ctx)
+      this.particleMouse.draw(ctx)
       const pMouse = this.particleMouse
       for (let i = 0; i < this.particleNum; i++) {
         const p = this.particleArr[i]
-        const a = p.calcAcceleration(pMouse.pos)
-        console.log(a)
-        p.update(a)
+        const l = pMouse.pos.minus(p.pos).abs()
+        if (l < 80) {
+          this.particleMouse.connection(ctx, p.pos, 2 * ((80 - l) / 80))
+        }
+        if (l < 200) {
+          const a = p.calcAcceleration(pMouse.pos)
+          p.update(a)
+        }
+
       }
     }
 
