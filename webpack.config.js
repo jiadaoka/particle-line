@@ -5,10 +5,9 @@ const webpack = require('webpack')
 
 const MODNAME = 'particleLine'
 
-module.exports = {
+const config = {
   mode: 'development',
   entry: './src/particle-line.ts',
-  devtool: 'inline-source-map',
   output: {
     filename: 'particle-line.min.js',
     path: path.resolve(__dirname, 'dist'),
@@ -45,4 +44,17 @@ module.exports = {
     }),
     new webpack.HotModuleReplacementPlugin()
   ]
+}
+
+
+module.exports = (env, argv) => {
+  if (argv.mode === 'development') {
+    config.devtool = 'inline-source-map'
+  }
+
+  if (argv.mode === 'production') {
+    //...
+  }
+
+  return config
 }
