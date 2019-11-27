@@ -3,19 +3,19 @@ import sourceMap from 'rollup-plugin-sourcemaps'
 import { uglify } from 'rollup-plugin-uglify'
 
 export default {
-  input: './src/particle-line.ts',
+  input: './src/main.ts',
   plugins: [
     typescript({
       exclude: 'node_modules/**',
       typescript: require('typescript')
     }),
     sourceMap(),
-    // uglify()
+    uglify()
   ],
   output: [{
     format: 'umd',
     name: 'particleLine',
-    file: 'lib/particle-line.js',
+    file: 'lib/particle-line.min.js',
     sourcemap: false
   }]
 }

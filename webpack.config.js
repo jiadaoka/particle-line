@@ -7,7 +7,7 @@ const MODNAME = 'particleLine'
 
 const config = {
   mode: 'development',
-  entry: './src/particle-line.ts',
+  entry: './src/main.ts',
   output: {
     filename: 'particle-line.min.js',
     path: path.resolve(__dirname, 'dist'),
